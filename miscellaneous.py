@@ -1,6 +1,3 @@
-from hashlib import sha256
-
-
 def hasher(text: str) -> str:
     from hashlib import sha256
 

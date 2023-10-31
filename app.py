@@ -5,6 +5,7 @@ from flask import Flask
 
 from db import initialise_db
 
+
 load_dotenv()
 
 app: Flask = Flask("Virtualisation J-Component")

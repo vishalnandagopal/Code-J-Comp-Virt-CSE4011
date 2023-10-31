@@ -1,14 +1,14 @@
-import sqlite3
-
-from json import dumps as jsondumps
-from json import load as jsonload
-from json import loads as jsonloads
 from os import path
 from sqlite3 import connect
 from typing import Any, Optional
 from uuid import uuid4
+from os import getenv
 
-from miscellaneous import hasher
+
+import firebase_admin
+from firebase_admin import credentials
+
+from security import enc_class
 
 db_name = "healthcare.db"
 script_dir = path.dirname(__file__)
@@ -74,6 +74,18 @@ class SqliteWrapper:
         return self.fetchone(f'SELECT * FROM {table} WHERE {key_name}="{key_value}"')
 
 
+class FirestoreWrapper:
+    def __init__(self, creds_path: str):
+        creds = credentials.Certificate(creds_path)
+        firebase_admin.initialize_app(creds)
+        self.client = firebase_admin.firestore.client(app=None)
+
+    def execute(self):
+        ...
+
+
+firestore = FirestoreWrapper("./" + getenv("FIREBASE_CREDS_FILE"))
+
 db: SqliteWrapper = SqliteWrapper(db_path)
 
 default_queries = [
@@ -90,16 +102,15 @@ def check_if_patient_exists(patient_id: str) -> bool:
 
 
 def create_patient(
-    patient_id: str,
     patient_name: str,
     patient_age: int,
     patient_first_consultation_date: str,
 ) -> bool:
     """
-    Create a user by passing his username, password and type. Checks if the user already exists or not before creating one. Returns true if user has been created succesfully, false if user already exists or if create operation fails.
+    Create a patient by checking if it already exists
     """
-
-    if not check_if_patient_exists(patients_table, patients_primary_key, patient_id):
+    patient_id = uuid4()
+    if not check_if_patient_exists(patient_id):
         query = f"""INSERT INTO {patients_table} VALUES (?,?,?,?)"""
         db.execute(
             query,
@@ -109,15 +120,41 @@ def create_patient(
             patient_first_consultation_date,
         )
         return True
+    else:
+        return create_patient(
+            patient_name, patient_age, patient_first_consultation_date
+        )
     return False
 
 
 def fetch_patient_details(patient_id: str):
     """
-    Returns the details of the patient fromt he db.
+    Returns the details of the patient from he db.
     """
+
     return db.fetchone(
         f"""SELECT * FROM {patients_table} WHERE {patients_primary_key}=?""", patient_id
+    )
+
+
+def check_if_doctor_exists(doctor_id: str) -> bool:
+    return db.exists_perhaps(doctors_table, doctors_primary_key, doctor_id)
+
+
+def create_doctor(doctor_id: str, doctor_name: str, doctor_exp: int) -> bool:
+    if not check_if_doctor_exists(doctor_id):
+        query = f"""INSERT INTO {doctors_table} VALUES (?,?,?)"""
+        db.execute(query, doctor_id, doctor_name, doctor_exp)
+        return True
+    return False
+
+
+def fetch_doctor_details(doctor_id: str):
+    """
+    Returns he detais of the doctor from the db
+    """
+    return db.fetchone(
+        f"""SELECT * FROM {doctors_table} WHERE {doctors_primary_key}=?""", doctor_id
     )
 
 
@@ -127,3 +164,7 @@ def initialise_db():
     """
     for query in default_queries:
         db.execute(query)
+
+
+if __name__ == "__main__":
+    initialise_db()
