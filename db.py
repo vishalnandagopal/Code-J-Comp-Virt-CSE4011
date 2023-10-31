@@ -3,16 +3,17 @@ from sqlite3 import connect
 from typing import Any, Optional
 from uuid import uuid4
 from os import getenv
+from dotenv import load_dotenv
 
-
-import firebase_admin
-from firebase_admin import credentials
+from firebase_admin import credentials, firestore, initialize_app
 
 from security import enc_class
 
 db_name = "healthcare.db"
 script_dir = path.dirname(__file__)
 db_path = path.join(script_dir, db_name)
+
+load_dotenv()
 
 patients_table = "patients"
 doctors_table = "doctors"
@@ -26,6 +27,23 @@ doctors_primary_key = "doctor_id"
 ailments_primary_key = "ailment_id"
 medicines_primary_key = "medicine_id"
 consultation_primary_key = "consultation_id"
+
+
+all_tables = [
+    patients_table,
+    doctors_table,
+    ailments_table,
+    medicines_table,
+    consultation_table,
+]
+
+primary_keys = {
+    patients_table: patients_primary_key,
+    doctors_table: doctors_primary_key,
+    ailments_table: ailments_primary_key,
+    medicines_table: medicines_primary_key,
+    consultation_table: consultation_primary_key,
+}
 
 
 class SqliteWrapper:
@@ -77,24 +95,50 @@ class SqliteWrapper:
 class FirestoreWrapper:
     def __init__(self, creds_path: str):
         creds = credentials.Certificate(creds_path)
-        firebase_admin.initialize_app(creds)
-        self.client = firebase_admin.firestore.client(app=None)
+        initialize_app(creds)
+        self.client = firestore.client(app=None)
 
-    def execute(self):
+    def create(self, collection_name: str, document_id: str, document_dict: dict):
+        doc_ref = self.client.collection(collection_name).document(document_id)
+        doc_ref.set(document_dict)
+
+    def update(self, collection_name: str, document_id: str, document_dict: dict):
+        doc_ref = self.client.collection(collection_name).document(document_id)
+        doc_ref.update(document_dict)
+
+    def delete(self, collection_name: str, document_id: str):
+        doc_ref = self.client.collection(collection_name).document(document_id)
+        doc_ref.delete()
+
+    def fetch(self, collection_name: str, document_id: str):
+        doc_ref = self.client.collection(collection_name).document(document_id)
+        return doc_ref.get().to_dict()
+
+
+class DBWrapper:
+    def __init__(self):
+        self.firestore = FirestoreWrapper("./" + getenv("FIREBASE_CREDS_FILE"))
+
+        self.db: SqliteWrapper = SqliteWrapper(db_path)
         ...
 
+    def update(self, table_name, key):
+        self.firestore.update
 
-firestore = FirestoreWrapper("./" + getenv("FIREBASE_CREDS_FILE"))
 
-db: SqliteWrapper = SqliteWrapper(db_path)
+MasterDB = DBWrapper()
 
 default_queries = [
-    f"""CREATE TABLE IF NOT EXISTS {patients_table} ({patients_primary_key} TEXT NOT NULL PRIMARY KEY, patient_name TEXT NOT NULL, age int NOT NULL, first_consulation_date DATE NOT NULL)""",
-    f"""CREATE TABLE IF NOT EXISTS {doctors_table} ({doctors_primary_key} TEXT NOT NULL PRIMARY KEY, doctor_name TEXT NOT NULL, experience INT)""",
+    f"""CREATE TABLE IF NOT EXISTS {patients_table} ({patients_primary_key} TEXT NOT NULL PRIMARY KEY, patient_name TEXT NOT NULL, age TEXT NOT NULL, first_consulation_date TEXT NOT NULL)""",
+    f"""CREATE TABLE IF NOT EXISTS {doctors_table} ({doctors_primary_key} TEXT NOT NULL PRIMARY KEY, doctor_name TEXT NOT NULL, experience TEXT)""",
     f"""CREATE TABLE IF NOT EXISTS {ailments_table} ({ailments_primary_key} TEXT NOT NULL PRIMARY KEY, name TEXT NOT NULL, description TEXT, medicines TEXT)""",
-    f"""CREATE TABLE IF NOT EXISTS {medicines_table} ({medicines_primary_key} TEXT NOT NULL PRIMARY KEY, cart_items TEXT NOT NULL)""",
+    f"""CREATE TABLE IF NOT EXISTS {medicines_table} ({medicines_primary_key} TEXT NOT NULL PRIMARY KEY, cart_items TEXT NOT NULL, COST TEXT NOT NULL)""",
     f"""CREATE TABLE IF NOT EXISTS {consultation_table} ({consultation_primary_key} TEXT NOT NULL PRIMARY KEY, patient_id TEXT NOT NULL, doctor_id TEXT NOT NULL, ailments_ids TEXT NOT NULL)""",
 ]
+
+
+def check_record(table_name: str, p_key: str, p_value: str) -> bool:
+    return db.exists_perhaps(table_name, p_key, p_value)
 
 
 def check_if_patient_exists(patient_id: str) -> bool:
@@ -166,5 +210,4 @@ def initialise_db():
         db.execute(query)
 
 
-if __name__ == "__main__":
-    initialise_db()
+initialise_db()

@@ -63,7 +63,6 @@ if __name__ == "__main__":
     """
     TESTS
     """
-    from datetime import date as d
     from random import randint
 
     test = "vishal"
@@ -72,8 +71,4 @@ if __name__ == "__main__":
 
     random_int = randint(1, 2314124)
     if random_int == enc_class.decrypt_int(enc_class.encrypt_int(random_int)):
-        print(True)
-
-    random_date = d.today()
-    if random_date == enc_class.decrypt_date(enc_class.encrypt_date(random_date)):
         print(True)
