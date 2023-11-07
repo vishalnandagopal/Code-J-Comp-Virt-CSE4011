@@ -1,11 +1,17 @@
 FROM python:3.12
 
-LABEL virt image
+LABEL virt-flask-app image
 
-WORKDIR /virt
-
-COPY . .
+ADD ./requirements.txt ./requirements.txt
 
 RUN ["pip3","install","-r","requirements.txt"]
 
-CMD python3 app.py
+RUN ["pip3", "install", "gunicorn"]
+
+WORKDIR /virt-jcomp
+
+ENV PYTHONUNBUFFERED=1
+
+COPY . .
+
+CMD gunicorn --bind 0.0.0.0:8000 --workers 3 wsgi:app

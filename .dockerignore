@@ -1,0 +1,8 @@
+__pycache__
+LICENSE
+.gitignore
+*.md
+*.db
+*.log
+.git
+testing.py

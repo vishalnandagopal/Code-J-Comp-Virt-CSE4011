@@ -1,6 +1,5 @@
 from datetime import date, datetime
-from os import getenv
-from time import ctime
+from os import getenv, path, listdir
 
 import rsa
 from cryptography.fernet import Fernet
@@ -32,7 +31,7 @@ class Assymetric(CommonEncryption):
         self.publicKey, self.privateKey = rsa.newkeys(512)
 
     def encrypt(self, message: str):
-        return rsa.encrypt(message.encode(), self.publicKey)
+        return rsa.encrypt(str(message).encode(), self.publicKey)
 
     def decrypt(self, message: str):
         return rsa.decrypt(message, self.privateKey).decode()
@@ -40,24 +39,39 @@ class Assymetric(CommonEncryption):
 
 class Symmetric(CommonEncryption):
     def __init__(self):
-        self.key = Fernet.generate_key()
-        with open("password.log", "a") as f:
-            f.write(f"Password generated at {ctime()} is {self.key}\n")
+        self.key = Symmetric.get_key()
+        print("Key is " + str(self.key))
         self.fernet = Fernet(self.key)
 
+    def get_key():
+        if "password.log" in listdir(path.dirname(__file__) + "/log"):
+            with open("./log/password.log", "rb") as f:
+                key = f.read()
+                return key
+
+        key = Fernet.generate_key()
+
+        with open(path.dirname(__file__) + "/log/password.log", "a") as f:
+            f.write(str(key).strip("b").strip("'"))
+
+        return key
+
     def encrypt(self, message: str):
-        return self.fernet.encrypt(message.encode())
+        return self.fernet.encrypt(str(message).encode())
 
     def decrypt(self, encrypted_message: str):
         return self.fernet.decrypt(encrypted_message).decode()
 
 
-if getenv("LIBRARY") not in ("rsa", "cryptography"):
-    enc_class = Symmetric()
-elif getenv("LIBRARY") == "cryptography":
-    enc_class = Symmetric()
-else:
-    enc_class = Assymetric()
+def get_encryptor():
+    if getenv("LIBRARY") not in ("rsa", "cryptography"):
+        enc_class = Symmetric()
+    elif getenv("LIBRARY") == "cryptography":
+        enc_class = Symmetric()
+    else:
+        enc_class = Assymetric()
+    return enc_class
+
 
 if __name__ == "__main__":
     """
@@ -65,10 +79,11 @@ if __name__ == "__main__":
     """
     from random import randint
 
+    encryptor = get_encryptor()
     test = "vishal"
-    if test == enc_class.decrypt(enc_class.encrypt(test)):
+    if test == encryptor.decrypt(encryptor.encrypt(test)):
         print(True)
 
     random_int = randint(1, 2314124)
-    if random_int == enc_class.decrypt_int(enc_class.encrypt_int(random_int)):
+    if random_int == encryptor.decrypt_int(encryptor.encrypt_int(random_int)):
         print(True)
