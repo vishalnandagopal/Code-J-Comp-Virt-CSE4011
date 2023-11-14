@@ -16,7 +16,7 @@ app: Flask = Flask("Virtualisation J-Component")
 def index():
     print("welcome to this app")
     return {
-        "msg": "Welcome to a secure, compliant &  containerized storage solution for healthcare providers"
+        "msg": "Welcome to a secure, compliant & containerized storage solution for healthcare providers"
     }, 200
 
 

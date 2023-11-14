@@ -15,6 +15,7 @@ requests = "2.31.0"
 rsa = "4.9"
 python-dotenv = "1.0.0"
 faker = "19.13.0"
+gunicorn = "^21.2.0"
 
 
 [build-system]
