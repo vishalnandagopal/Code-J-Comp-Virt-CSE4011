@@ -1,6 +1,5 @@
 from json import loads
 from random import randint
-from time import sleep
 
 import requests
 from faker import Faker
@@ -42,7 +41,8 @@ for i in range(10):
             },
         }
     )["u_id"]
-    print(u_id)
+    print(f"Wrote {u_id} to firebase database")
+    print(f"Fetching {u_id} details....")
     print(
         call(
             {
@@ -52,4 +52,4 @@ for i in range(10):
             "fetch",
         )
     )
-    print("DONE")
+    print("DONE\n\n")

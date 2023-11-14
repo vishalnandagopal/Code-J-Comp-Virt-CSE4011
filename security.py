@@ -1,5 +1,5 @@
 from datetime import date, datetime
-from os import getenv, path, listdir
+from os import getenv, path, listdir, makedirs
 
 import rsa
 from cryptography.fernet import Fernet
@@ -44,14 +44,23 @@ class Symmetric(CommonEncryption):
         self.fernet = Fernet(self.key)
 
     def get_key():
-        if "password.log" in listdir(path.dirname(__file__) + "/log"):
-            with open("./log/password.log", "rb") as f:
-                key = f.read()
-                return key
+        try:
+            if "password.log" in listdir(path.dirname(__file__) + "/log"):
+                with open("./log/password.log", "rb") as f:
+                    key = f.read()
+                    return key
+        except FileNotFoundError:
+            print(
+                "Log file or log folder doesn't seem to exist so will be creating a new key"
+            )
 
         key = Fernet.generate_key()
 
-        with open(path.dirname(__file__) + "/log/password.log", "a") as f:
+        password_log_file_name = path.dirname(__file__) + "/log/password.log"
+    
+        makedirs(path.dirname(password_log_file_name), exist_ok=True)
+
+        with open(password_log_file_name, "w+") as f:
             f.write(str(key).strip("b").strip("'"))
 
         return key

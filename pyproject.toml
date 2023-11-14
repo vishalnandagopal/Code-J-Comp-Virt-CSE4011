@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "code j-comp virt cse4011"
+version = "1.0"
+description = "Flask (Python) project submitted for Virtualisation J-Component."
+authors = ["Vishal N <dev@vishalnandagopal.com>"]
+license = "MIT License"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+cryptography = "^41.0.5"
+flask = "3.0.0"
+firebase-admin = "6.2.0"
+requests = "2.31.0"
+rsa = "4.9"
+python-dotenv = "1.0.0"
+faker = "19.13.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
