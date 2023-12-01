@@ -12,8 +12,6 @@ Backend only, meant to be run as a docker container. It is written in Python and
 
 > Docker is the best way to run the app, since it removes issues with dependencies not working on your specific OS. This project has been tested on the `python:3.12-slim` image.
 
-Docker looks at the commands you have given in the [Dockerfile](./Dockerfile) and tries to run the exact same commands on the same VM/base image. The idea is that if it works once on someone's laptop, it should work everywhere.
-
 1. Install docker
 
     Install docker engine from [here](https://docs.docker.com/engine/install/).
