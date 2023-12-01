@@ -1,4 +1,4 @@
-from os import getenv, path
+from os import getenv
 from uuid import uuid4
 
 from dotenv import load_dotenv

@@ -1,16 +1,12 @@
-FROM python:3.12
+FROM python:3.12-slim
 
 LABEL virt-flask-app image
 
-RUN ["pip3","install","poetry==1.7.0"]
+COPY requirements.txt /
+
+RUN ["pip","install","-r","requirements.txt"]
 
 WORKDIR /virt-jcomp
-
-COPY poetry.lock pyproject.toml /virt-jcomp/
-
-RUN ["poetry","config","virtualenvs.create","false"]
-
-RUN ["poetry","install","--no-interaction","--no-ansi"]
 
 COPY . .
 

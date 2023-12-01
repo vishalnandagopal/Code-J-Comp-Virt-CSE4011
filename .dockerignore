@@ -6,3 +6,5 @@ LICENSE
 *.log
 .git
 testing.py
+poetry.lock
+pyproject.toml
