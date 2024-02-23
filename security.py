@@ -57,7 +57,7 @@ class Symmetric(CommonEncryption):
         key = Fernet.generate_key()
 
         password_log_file_name = path.dirname(__file__) + "/log/password.log"
-    
+
         makedirs(path.dirname(password_log_file_name), exist_ok=True)
 
         with open(password_log_file_name, "w+") as f:
