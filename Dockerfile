@@ -1,4 +1,4 @@
-FROM python:3.12-slim AS requirements-image
+FROM python:3.12-alpine AS requirements-image
 
 ENV PYTHONUNBUFFERED=1
 
@@ -12,7 +12,7 @@ COPY pyproject.toml poetry.lock ./
 
 RUN ["poetry","export","--format","requirements.txt","--output","requirements.txt"]
 
-FROM python:3.12-slim AS runtime-image
+FROM python:3.12-alpine AS runtime-image
 
 LABEL virt-flask-app image
 
@@ -22,9 +22,9 @@ COPY --from=requirements-image /export/requirements.txt requirements.txt
 
 RUN ["pip","install","gunicorn"]
 
-RUN ["useradd","--create-home","docker-user"]
+# RUN ["useradd","--create-home","docker-user"]
 
-USER docker-user
+# USER docker-user
 
 COPY requirements.txt /
 
